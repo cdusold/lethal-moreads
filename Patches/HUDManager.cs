@@ -12,7 +12,8 @@ namespace MoreAds.Patches
         [HarmonyPostfix]
         private static void displayAd()
         {
-            TimeOfDay.Instance.hasShownAdThisQuota = true;
+            Plugin.logger.LogInfo("Ad done, reset boolean.");
+            TimeOfDay.Instance.hasShownAdThisQuota = false;
         }
 
     }

@@ -32,6 +32,7 @@ namespace MoreAds
             }
             harmony.PatchAll(typeof(Plugin));
             harmony.PatchAll(typeof(HUDManagerPatch));
+            harmony.PatchAll(typeof(TimeOfDayPatch));
         }
     }
 }

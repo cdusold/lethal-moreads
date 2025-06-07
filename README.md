@@ -1,4 +1,12 @@
 # MoreAds
-BepInEx Mod for Lethal Company to remove the ads introduced in v70.
+BepInEx Mod for Lethal Company to increase the ads introduced in v70.
 
-If you feel like this mod is a mistake like I do, the inverse mod should be available soon to make ads more often appear instead.
+This is currently mostly a proof of concept while I work on things.
+It currently allows ads even when solo or the last one alive, unlike in vanilla, sets the time to display at the minimum value, and makes the ads pop up every 30 seconds.
+
+## TODO
+
+- Make time to start still be randomized, just more often.
+- Make ad chosen more random, currently replays the lowest discount every time.
+- Ad configs
+- But what if custom ads?
