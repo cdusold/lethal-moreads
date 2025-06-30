@@ -3,6 +3,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using MoreAds.Patches;
 using MoreAds.Compat;
+using MoreAds.Configs;
 using HarmonyLib;
 
 namespace MoreAds
@@ -12,7 +13,7 @@ namespace MoreAds
     public class Plugin : BaseUnityPlugin
     {
         private readonly Harmony harmony = new Harmony("cdusold.LethalMoreAds");
-
+        internal static readonly bool debug = false;
         private static Plugin Instance;
 
         public static ManualLogSource logger;
@@ -26,6 +27,12 @@ namespace MoreAds
             logger = Logger;
             Logger.LogInfo("Mod cdusold.LethalMoreAds is loaded!");
 
+            ConfigManager.Init(Config);
+
+            if (Chainloader.PluginInfos.ContainsKey("ainavt.lc.lethalconfig"))
+            {
+                LethalConfigManager.Init(Config);
+            }
             if (Chainloader.PluginInfos.ContainsKey("BMX.LobbyCompatibility"))
             {
                 LobbyCompatibilityManager.Init();
@@ -33,6 +40,7 @@ namespace MoreAds
             harmony.PatchAll(typeof(Plugin));
             harmony.PatchAll(typeof(HUDManagerPatch));
             harmony.PatchAll(typeof(TimeOfDayPatch));
+            harmony.PatchAll(typeof(PlayerControllerBPatch));
         }
     }
 }
