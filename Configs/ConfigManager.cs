@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using BepInEx.Configuration;
 
 namespace MoreAds.Configs
@@ -39,6 +42,35 @@ namespace MoreAds.Configs
         public static ConfigEntry<NextAdAction> PlayOnDeath { get; private set; }
         // - Play on hurt: enum (immediately, reroll, nah bro)
         public static ConfigEntry<NextAdAction> PlayOnHurt { get; private set; }
+        // - Blacklist: list of ad names to never show
+        public static ConfigEntry<string> Blacklist { get; private set; }
+        public static List<string> BlacklistItems
+        {
+            get
+            {
+                if (Blacklist == null || string.IsNullOrEmpty(Blacklist.Value))
+                {
+                    return [];
+                }
+                return Blacklist.Value.Split(',').ToList();
+            }
+        }
+        public static ConfigEntry<string> SalesText { get; private set; }
+        public static List<Tuple<string, int>> SalesTextList
+        {
+            get
+            {
+                if (SalesText == null || string.IsNullOrEmpty(SalesText.Value))
+                {
+                    return [];
+                }
+                return SalesText.Value.Split(',')
+                    .Select(s => s.Split(':'))
+                    .Where(parts => parts.Length == 2 && int.TryParse(parts[1], out _))
+                    .Select(parts => new Tuple<string, int>(parts[0], int.Parse(parts[1])))
+                    .ToList();
+            }
+        }
 
 
         private ConfigManager(ConfigFile config)
@@ -84,6 +116,18 @@ namespace MoreAds.Configs
                 "Play ad on hurt",
                 NextAdAction.RerollNext,
                 "What to do with ads when the player is hurt. Options: Immediately, RerollNext, None."
+            );
+            Blacklist = config.Bind(
+                "General",
+                "Blacklist",
+                "Bee Suit,Bunny Suit,Green suit,Hazard suit,Pajama suit,Purple Suit",
+                "List of item names to never show. Use the exact name as it appears in the game, comma separated."
+            );
+            SalesText = config.Bind(
+                "General",
+                "Sales Text",
+                "CURES CANCER!:3,NO WAY!:6,LIMITED TIME ONLY!:30,GET YOURS TODAY!:60,AVAILABLE NOW!:100",
+                "List of sales text to use for ads. Format: 'Text:Percentage', comma separated. Defaults to vanilla values."
             );
         }
     }

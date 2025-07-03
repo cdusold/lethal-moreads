@@ -4,9 +4,14 @@ There are a number of settings. You can set the max number of ads per day, wheth
 
 Any time a reroll happens, the ad will happen sooner (or the same time), never later.
 
+Also, ads now play if you're the last one left as well, which means they'll appear in solo play as well.
+
+*New*: Customize the ad slogans! Format is [slogan]:[value], and comma separated, where value is the maximum value that can be rolled to see that slogan. The roll picks a random int from 0-100, and the check goes from left to right, so keep the list ordered by value low to high. (Debating switching to a weight system.)
+
 # Miscellanious fixes
 
-Currently just one. By default the game gets the ad sale value wrong on clients. This mod fixes that.
+- By default the game gets the ad sale value wrong on clients. This mod fixes that.
+- If a suit ad tries to play, something null reference exceptions and then no ad can ever play again. A custom ad selection is forced every time to prevent this, with configurable blacklist.
 
 # Support
 

@@ -1,12 +1,23 @@
-# MoreAds
-BepInEx Mod for Lethal Company to increase the ads introduced in v70.
+I'm guessing you play Lethal Company to get ads, so this will increase the nmber of ads introduced in v70.
 
-This is currently mostly a proof of concept while I work on things.
-It currently allows ads even when solo or the last one alive, unlike in vanilla, sets the time to display at the minimum value, and makes the ads pop up every 30 seconds.
+There are a number of settings. You can set the max number of ads per day, whether to play an ad as soon as possible on landing, the delay between ads, play ad or reroll timing on deaths, play ad or reroll timing on damage, the earliest time an ad can play, and the latest time an ad can play.
 
-## TODO
+Any time a reroll happens, the ad will happen sooner (or the same time), never later.
 
-- Make time to start still be randomized, just more often.
-- Make ad chosen more random, currently replays the lowest discount every time.
-- Ad configs
-- But what if custom ads?
+Also, ads now play if you're the last one left as well, which means they'll appear in solo play as well.
+
+*New*: Customize the ad slogans! Format is [slogan]:[value], and comma separated, where value is the maximum value that can be rolled to see that slogan. The roll picks a random int from 0-100, and the check goes from left to right, so keep the list ordered by value low to high. (Debating switching to a weight system.)
+
+# Miscellanious fixes
+
+- By default the game gets the ad sale value wrong on clients. This mod fixes that.
+- If a suit ad tries to play, something null reference exceptions and then no ad can ever play again. A custom ad selection is forced every time to prevent this, with configurable blacklist.
+
+# Support
+
+This isn't guaranteed to work, but it was running well for us for a while.
+If you run into any issues, please let me know on the [github](https://github.com/cdusold/lethal-moreads) or [discord](https://discord.com/channels/1168655651455639582/1379569936703160340).
+
+# Recommendations
+
+Pairs very well with [TomatoBird's AdRevenue](https://thunderstore.io/c/lethal-company/p/Tomatobird/AdRevenue/), though you likely want to decrease the per ad payout since there's so many of them. Capping the number of ads per day and dropping the ad on landing isn't a bad idea either.

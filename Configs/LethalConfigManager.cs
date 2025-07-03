@@ -49,7 +49,7 @@ namespace MoreAds.Configs
             }));
             LethalConfig.LethalConfigManager.AddConfigItem(new EnumDropDownConfigItem<ConfigManager.NextAdAction>(ConfigManager.PlayOnDeath, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new EnumDropDownConfigItem<ConfigManager.NextAdAction>(ConfigManager.PlayOnHurt, false));
-            
+            LethalConfig.LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(ConfigManager.Blacklist, false));
         }
     }
 }

@@ -13,23 +13,18 @@ namespace MoreAds.Patches
             // TODO: Make this configurable
             // This is just the code from the original game (v72)
             // It'll make more sense to make this configurable if we can sync text with clients.
+
+            // The original default, just because.
             string result = "AVAILABLE NOW!";
+            // This kinda syncs the clients?
             int num = new System.Random(StartOfRound.Instance.randomMapSeed).Next(0, 100);
-            if (num < 3)
+            for (int i = 0; i < Configs.ConfigManager.SalesTextList.Count; i++)
             {
-                result = "CURES CANCER!";
-            }
-            else if (num < 6)
-            {
-                result = "NO WAY!";
-            }
-            else if (num < 30)
-            {
-                result = "LIMITED TIME ONLY!";
-            }
-            else if (num < 60)
-            {
-                result = "GET YOURS TODAY!";
+                if (num < Configs.ConfigManager.SalesTextList[i].Item2)
+                {
+                    result = Configs.ConfigManager.SalesTextList[i].Item1;
+                    break;
+                }
             }
 
             return result;
@@ -42,10 +37,6 @@ namespace MoreAds.Patches
             Plugin.logger.LogInfo("Ad starting, setting check timer.");
             // This will be reset by AdIncrement
             Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(600f);
-            if (TimeOfDayPatch.adCount == 0)
-            {
-                return true; // Use vanilla first
-            }
             if (!HUDManager.Instance.IsServer)
             {
                 return true;
@@ -60,14 +51,45 @@ namespace MoreAds.Patches
             int num2 = 100;
             int num3 = -1;
             Terminal terminal = UnityEngine.Object.FindObjectOfType<Terminal>();
-            // We grabbed the steeped sale for the first ad (Vanilla) so let's get a different ad.
-            // Instead, pick a random item on the list of all unowned furniture or tools.
+            // Pick a random item on the list of all unowned furniture or tools not in the blacklist.
+            // Let's weight the items by their sale percentage, showing the steepest discount most often.
             List<TerminalNode> list = new List<TerminalNode>();
+            if (Plugin.debug)
+            {
+                Plugin.logger.LogInfo("Ad possible items:");
+            }
             for (int j = 0; j < terminal.ShipDecorSelection.Count; j++)
             {
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"- {StartOfRound.Instance.unlockablesList.unlockables[terminal.ShipDecorSelection[j].shipUnlockableID].unlockableName}");
+                }
                 if (!StartOfRound.Instance.unlockablesList.unlockables[terminal.ShipDecorSelection[j].shipUnlockableID].hasBeenUnlockedByPlayer)
                 {
+                    // Skip if in blacklist
+                    if (Configs.ConfigManager.BlacklistItems.Contains(StartOfRound.Instance.unlockablesList.unlockables[terminal.ShipDecorSelection[j].shipUnlockableID].unlockableName))
+                    {
+                        continue;
+                    }
                     list.Add(terminal.ShipDecorSelection[j]);
+                }
+            }
+            List<int> buyableItemsList = new List<int>();
+            for (int j = 0; j < terminal.buyableItemsList.Length; j++)
+            {
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"- {terminal.buyableItemsList[j].itemName}");
+                }
+                // Skip if in blacklist
+                if (Configs.ConfigManager.BlacklistItems.Contains(terminal.buyableItemsList[j].itemName))
+                {
+                    continue;
+                }
+                buyableItemsList.Add(j);
+                for (int k = 0; k < (100-terminal.itemSalesPercentages[j])/10; k++)
+                {
+                    buyableItemsList.Add(j);
                 }
             }
             string itemName = "";
@@ -77,6 +99,8 @@ namespace MoreAds.Patches
             {
                 Debug.Log("Picking a tool to hawk.");
                 num3 -= list.Count;
+                // That's the index in the reduplicated list, get the original index.
+                num3 = buyableItemsList[num3];
                 num2 = terminal.itemSalesPercentages[num3];
                 Item item = terminal.buyableItemsList[num3];
                 HUDManager.Instance.CreateToolAdModelAndDisplayAdClientRpc(num2, num3);
@@ -104,9 +128,11 @@ namespace MoreAds.Patches
                 }
                 catch (ArgumentException e)
                 {
+                    // Hopefully this can recover from the null reference exception that happens when a suit ad tries to play.
+                    // If not we need to add more to the blacklist.
                     Plugin.logger.LogWarning($"Error creating furniture ad model: {e.Message}");
                     Plugin.logger.LogWarning($"{e.StackTrace}");
-                    return true; // Try a vanilla ad instead.
+                    return false; // Vanilla ads are broken, never play one.
                 }
             }
 
