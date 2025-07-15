@@ -126,8 +126,8 @@ namespace MoreAds.Configs
             SalesText = config.Bind(
                 "General",
                 "Sales Text",
-                "CURES CANCER!:3,NO WAY!:6,LIMITED TIME ONLY!:30,GET YOURS TODAY!:60,AVAILABLE NOW!:100",
-                "List of sales text to use for ads. Format: 'Text:Percentage', comma separated. Defaults to vanilla values."
+                "CURES CANCER!:3,NO WAY!:3,LIMITED TIME ONLY!:24,GET YOURS TODAY!:30,AVAILABLE NOW!:40",
+                "List of sales text to use for ads. Format: 'Text:Weight', comma separated. Defaults to vanilla values."
             );
         }
     }

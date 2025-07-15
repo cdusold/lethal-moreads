@@ -17,13 +17,22 @@ namespace MoreAds.Patches
             // The original default, just because.
             string result = "AVAILABLE NOW!";
             // This kinda syncs the clients?
-            int num = new System.Random(StartOfRound.Instance.randomMapSeed).Next(0, 100);
+            int totalWeight = 0;
+            for (int i = 0; i < Configs.ConfigManager.SalesTextList.Count; i++)
+            {
+                totalWeight += Configs.ConfigManager.SalesTextList[i].Item2;
+            }
+            int num = new System.Random(StartOfRound.Instance.randomMapSeed + TimeOfDayPatch.adCount).Next(0, totalWeight);
             for (int i = 0; i < Configs.ConfigManager.SalesTextList.Count; i++)
             {
                 if (num < Configs.ConfigManager.SalesTextList[i].Item2)
                 {
                     result = Configs.ConfigManager.SalesTextList[i].Item1;
                     break;
+                }
+                else
+                {
+                    num -= Configs.ConfigManager.SalesTextList[i].Item2;
                 }
             }
 
@@ -93,7 +102,7 @@ namespace MoreAds.Patches
                 }
             }
             string itemName = "";
-            string saleText = HUDManagerPatch.ChooseSaleText();
+            string saleText = ChooseSaleText();
             num3 = UnityEngine.Random.Range(0, terminal.buyableItemsList.Length + list.Count);
             if (num3 >= list.Count)
             {
@@ -105,7 +114,10 @@ namespace MoreAds.Patches
                 Item item = terminal.buyableItemsList[num3];
                 HUDManager.Instance.CreateToolAdModelAndDisplayAdClientRpc(num2, num3);
                 HUDManager.Instance.CreateToolAdModel(num2, item);
-                saleText = $"{100 - num2}% OFF!";
+                if (num2 <= 70)
+                {
+                    saleText = $"{100 - num2}% OFF!";
+                }
                 itemName = item.itemName;
             }
             else
@@ -141,6 +153,48 @@ namespace MoreAds.Patches
             return false; // Skip vanilla ad, we already did one.
         }
 
+        [HarmonyPatch("CreateToolAdModelAndDisplayAdClientRpc")]
+        [HarmonyPrefix]
+        private static bool CreateToolAdModelAndDisplayAdClientRpcReplacement(int steepestSale, int itemIndex)
+        {
+            NetworkManager networkManager = HUDManager.Instance.NetworkManager;
+            if ((object)networkManager == null || !networkManager.IsListening || networkManager.IsHost || HUDManager.Instance.IsServer)
+            {
+                return true; // Let the base game handle RPC sending.
+            }
+
+            var __rpc_exec_stage = Traverse.Create(HUDManager.Instance).Field("__rpc_exec_stage").GetValue();
+            // We can't access the enum but Client is 2.
+            if ((int)__rpc_exec_stage != 2 && (networkManager.IsServer || networkManager.IsHost))
+            {
+                return true; // Let the base game handle RPC sending.
+            }
+
+            if ((int)__rpc_exec_stage == 2 && (networkManager.IsClient || networkManager.IsHost) && !HUDManager.Instance.IsServer)
+            {
+                for (int num = HUDManager.Instance.advertItemParent.transform.childCount - 1; num >= 0; num--)
+                {
+                    UnityEngine.Object.Destroy(HUDManager.Instance.advertItemParent.transform.GetChild(num).gameObject);
+                }
+
+                HUDManager.Instance.advertItem = null;
+                Terminal terminal = UnityEngine.Object.FindObjectOfType<Terminal>();
+                Item item = terminal.buyableItemsList[itemIndex];
+                if (!GameNetworkManager.Instance.localPlayerController.isPlayerDead)
+                {
+                    HUDManager.Instance.CreateToolAdModel(steepestSale, item);
+                }
+
+                var saleText = ChooseSaleText();
+                if (steepestSale <= 70)
+                {
+                    saleText = $"{100 - steepestSale}% OFF!";
+                }
+                HUDManager.Instance.BeginDisplayAd(item.itemName, saleText);
+            }
+            return false; // Skip original method
+        }
+
         [HarmonyPatch("displayAd")]
         [HarmonyPostfix]
         private static void displayAdPost()
@@ -148,18 +202,6 @@ namespace MoreAds.Patches
             Plugin.logger.LogInfo("Ad done, reset stuff.");
             // ResetAdTime in AdIncrement also resets hasShownAdThisQuota
             TimeOfDayPatch.AdIncrement();
-        }
-
-        [HarmonyPatch("CreateToolAdModelAndDisplayAdClientRpc")]
-        [HarmonyPrefix]
-        private static bool CreateToolAdModelAndDisplayAdClientRpcPre(ref int steepestSale)
-        {
-            if ((HUDManager.Instance.IsClient || HUDManager.Instance.IsHost) && !HUDManager.Instance.IsServer)
-            {
-                // At least in v72, the sale is inverted for some reason.
-                steepestSale = 100 - steepestSale;
-            }
-            return true;
         }
 
     }

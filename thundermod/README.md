@@ -6,7 +6,7 @@ Any time a reroll happens, the ad will happen sooner (or the same time), never l
 
 Also, ads now play if you're the last one left as well, which means they'll appear in solo play as well.
 
-*New*: Customize the ad slogans! Format is [slogan]:[value], and comma separated, where value is the maximum value that can be rolled to see that slogan. The roll picks a random int from 0-100, and the check goes from left to right, so keep the list ordered by value low to high. (Debating switching to a weight system.)
+*New*: Customize the ad slogans! Format is [slogan]:[weight], and comma separated, where weight is the unnormalized chance that slogan will be rolled. The odds do not have to add up to 100, nor does the order matter.
 
 # Miscellanious fixes
 

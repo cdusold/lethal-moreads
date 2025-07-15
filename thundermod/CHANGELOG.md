@@ -1,6 +1,7 @@
-# 1.1.1
+# 1.2.0
 
-- Failed to save changelog in 1.1.0
+- Using ads slogans that are furniture only in vanilla to tools with no sale or low sale values.
+- Slogan values switched from cumulative distribution to weight function, like the ones used to select interiors on moons, monster spawns, and scrap spawns.
 
 # 1.1.0
 
