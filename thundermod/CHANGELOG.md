@@ -1,3 +1,9 @@
+# 2.0.0
+
+- Adding probabilities to all the ad triggers.
+- Resetting the ad wait interval on landing.
+- Adding a Max Ads Per Quota setting.
+
 # 1.2.0
 
 - Using ads slogans that are furniture only in vanilla to tools with no sale or low sale values.

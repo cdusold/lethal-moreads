@@ -11,18 +11,14 @@ namespace MoreAds.Patches
     {
 
         public static int adCount { get; private set; } = 0;
+        public static int quotaAdCount { get; private set; } = 0;
 
-        [HarmonyPatch("Update")]
+        [HarmonyPatch("SetNewProfitQuota")]
         [HarmonyPrefix]
-        private static bool Update()
+        private static bool SetNewProfitQuota()
         {
-            var __timeStartedThisFrame = Traverse.Create(TimeOfDay.Instance).Field("timeStartedThisFrame").GetValue<bool>();
-            if (__timeStartedThisFrame)
-            {
-                TimeOfDay.Instance.hasShownAdThisQuota = false;
-                adCount = 0;
-                TimeOfDay.Instance.normalizedTimeToShowAd = Configs.ConfigManager.OnLanding.Value ? Configs.ConfigManager.EarliestTimeToShowAd.Value : -1f;
-            }
+            Plugin.logger.LogInfo("Quota ad count reset.");
+            quotaAdCount = 0;
             return true;
         }
 
@@ -30,37 +26,72 @@ namespace MoreAds.Patches
         [HarmonyPrefix]
         private static bool SetTimeForAdToPlay()
         {
-            if (!CanSetAd())
+            if (Plugin.debug)
             {
-                return false;
+                Plugin.logger.LogWarning("POIK: SetTimeForAdToPlay was called.");
             }
-            if (TimeOfDay.Instance.normalizedTimeToShowAd == -1f)
+            SetGameToAllowAds();
+            adCount = 0;
+            if (CanSetAd())
             {
-                ResetAdTime();
+                var chanceOnLanding = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceOnLandingLastDay.Value : Configs.ConfigManager.ChanceOnLanding.Value;
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"Chance on landing: {chanceOnLanding}% chance.");
+                }
+                var chanceForFirstAd = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceForFirstAdLastDay.Value : Configs.ConfigManager.ChanceForFirstAd.Value;
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"Chance for first ad: {chanceForFirstAd}% chance.");
+                }
+                if (chanceOnLanding > 0 && (chanceOnLanding >= 100 || UnityEngine.Random.Range(0, 100) < chanceOnLanding))
+                {
+                    if (Plugin.debug)
+                    {
+                        Plugin.logger.LogInfo("Chance on landing: Trigger successful.");
+                    }
+                    TimeOfDay.Instance.normalizedTimeToShowAd = Configs.ConfigManager.EarliestTimeToShowAd.Value;
+                }
+                else if (chanceForFirstAd > 0 && (chanceForFirstAd >= 100 || UnityEngine.Random.Range(0, 100) < chanceForFirstAd))
+                {
+                    if (Plugin.debug)
+                    {
+                        Plugin.logger.LogInfo("Chance for first ad: Trigger successful.");
+                    }
+                    TimeOfDay.Instance.normalizedTimeToShowAd = RollAdTime();
+                }
+                else
+                {
+                    if (Plugin.debug)
+                    {
+                        Plugin.logger.LogInfo("No ad scheduled on landing.");
+                    }
+                    TimeOfDay.Instance.normalizedTimeToShowAd = -1f;
+                }
             }
             else
             {
-                RerollAdTime();
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("I believe we've reached max ad-itude.");
+                }
+                TimeOfDay.Instance.normalizedTimeToShowAd = -1f;
             }
-            return false; // Skip original method
+            Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(0f);
+            return false;
         }
 
         [HarmonyPatch("GetClientInfo")]
         [HarmonyPostfix]
-        private static void GetClientInfoPatch()
+        private static void GetClientInfoPost()
         {
-            if (TimeOfDay.Instance.hasShownAdThisQuota)
-            {
-                Plugin.logger.LogInfo("Setting time for next ad and resetting ad shown bool.");
-                SetTimeForAdToPlay();
-                TimeOfDay.Instance.hasShownAdThisQuota = false;
-            }
+            SetGameToAllowAds();
         }
 
         [HarmonyPatch("MeetsRequirementsToShowAd")]
         [HarmonyPostfix]
         private static void MeetsRequirementsToShowAdPatch(ref bool __result)
-        {
+        { // A little hacky.
             __result = true;
         }
 
@@ -72,10 +103,17 @@ namespace MoreAds.Patches
             var codes = new List<CodeInstruction>(instructions);
             for (int i = 1; i < codes.Count; i++)
             {
-                // Plugin.logger.LogInfo($"Instruction {i}: {codes[i].opcode} {codes[i].operand}");
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"Instruction {i}: {codes[i].opcode} {codes[i].operand}");
+                }
                 if (codes[i].opcode == OpCodes.Ldc_I4_1 && codes[i - 1].opcode == OpCodes.Ldfld && codes[i - 1].operand.ToString().Contains("livingPlayers"))
                 {
                     codes[i] = new CodeInstruction(OpCodes.Ldc_I4_0); // Change to zero
+                    if (Plugin.debug)
+                    {
+                        Plugin.logger.LogInfo($"Changed instruction {i} to Ldc_I4_0.");
+                    }
                     Plugin.logger.LogInfo("Patched ads to display even if only one player is alive.");
                     break;
                 }
@@ -97,30 +135,33 @@ namespace MoreAds.Patches
             {
                 return false; // Skip original method
             }
-            if (Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").GetValue<bool>())
+            // Nuclear option. We don't care about vanilla checks, we have our own.
+            SetGameToAllowAds();
+            if (false) // TODO: REMOVE
             {
-                // Plugin.logger.LogInfo("Ad check happened, but no ad was shown.");
-                Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(15f);
-                Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").SetValue(false);
-                ResetAdTime();
-                TimeOfDay.Instance.hasShownAdThisQuota = false;
-            }
-            else if (TimeOfDay.Instance.hasShownAdThisQuota)
-            {
-                Plugin.logger.LogInfo("POIK: NOTICE: Ad shown bool being reset.");
-                TimeOfDay.Instance.hasShownAdThisQuota = false;
-            }
-            if (TimeOfDay.Instance.normalizedTimeToShowAd == -1f)
-            {
-                Plugin.logger.LogInfo("POIK: NOTICE: Ad time got unset, setting it now.");
-                SetTimeForAdToPlay();
+                if (Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").GetValue<bool>())
+                {
+                    if (Plugin.debug)
+                    {
+                        Plugin.logger.LogInfo("Ad check happened, but no ad was shown.");
+                    }
+                    Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(15f);
+                    Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").SetValue(false);
+                    ResetAdTime();
+                    TimeOfDay.Instance.hasShownAdThisQuota = false;
+                }
+                else if (TimeOfDay.Instance.hasShownAdThisQuota)
+                {
+                    Plugin.logger.LogInfo("POIK: NOTICE: Ad shown bool being reset.");
+                    TimeOfDay.Instance.hasShownAdThisQuota = false;
+                }
             }
             return true;
         }
 
         [HarmonyPatch("ReceiveInfoFromClientForShowingAdServerRpc")]
         [HarmonyPrefix]
-        private static bool ReceiveInfoFromClientForShowingAdServerRpc(ref bool doesntMeetRequirements)
+        private static bool ReceiveInfoFromClientForShowingAdServerRpcPre(ref bool doesntMeetRequirements)
         {
             if (doesntMeetRequirements)
             {
@@ -137,6 +178,10 @@ namespace MoreAds.Patches
                 return false;
             }
             if (Configs.ConfigManager.MaxAdsPerDay.Value != -1 && adCount >= Configs.ConfigManager.MaxAdsPerDay.Value)
+            {
+                return false;
+            }
+            if (Configs.ConfigManager.MaxAdsPerQuota.Value != -1 && quotaAdCount >= Configs.ConfigManager.MaxAdsPerQuota.Value)
             {
                 return false;
             }
@@ -162,6 +207,10 @@ namespace MoreAds.Patches
             {
                 return false;
             }
+            if (Configs.ConfigManager.MaxAdsPerQuota.Value != -1 && quotaAdCount >= Configs.ConfigManager.MaxAdsPerQuota.Value)
+            {
+                return false;
+            }
             return true;
         }
 
@@ -169,7 +218,10 @@ namespace MoreAds.Patches
         {
             adCount++;
             Plugin.logger.LogInfo($"Ad #{adCount} shown.");
+            quotaAdCount++;
+            Plugin.logger.LogInfo($"This quota has had {quotaAdCount} ads.");
             Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(Configs.ConfigManager.MinimumTimeBetweenAds.Value);
+            SetGameToAllowAds();
             if (CanSetAd())
             {
                 ResetAdTime();
@@ -179,7 +231,6 @@ namespace MoreAds.Patches
         private static void SetGameToAllowAds()
         { // Setup all vanilla ad-related variables
             TimeOfDay.Instance.hasShownAdThisQuota = false;
-            ResetAdTime(); // Roll a new ad time
             Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").SetValue(false);
         }
 
@@ -191,11 +242,27 @@ namespace MoreAds.Patches
 
         private static void ResetAdTime()
         {
-            TimeOfDay.Instance.hasShownAdThisQuota = false;
-            TimeOfDay.Instance.normalizedTimeToShowAd = RollAdTime();
+            SetGameToAllowAds();
+            var chance = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceForFirstAdLastDay.Value : Configs.ConfigManager.ChanceForFirstAd.Value;
             if (Plugin.debug)
             {
-                Plugin.logger.LogInfo($"Ad time reset to {TimeOfDay.Instance.normalizedTimeToShowAd} (normalized time of day).");
+                Plugin.logger.LogInfo($"Resetting ad time with {chance}% chance.");
+            }
+            if (chance > 0 && (chance >= 100 || UnityEngine.Random.Range(0, 100) < chance))
+            {
+                TimeOfDay.Instance.normalizedTimeToShowAd = RollAdTime();
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"Ad time reset to {TimeOfDay.Instance.normalizedTimeToShowAd} (normalized time of day).");
+                }
+            }
+            else
+            {
+                TimeOfDay.Instance.normalizedTimeToShowAd = -1f;
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("Ad time reset to -1 (no ad scheduled).");
+                }
             }
         }
 
@@ -230,5 +297,5 @@ namespace MoreAds.Patches
         }
 
     }
-    
+
 }

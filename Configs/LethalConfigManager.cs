@@ -28,7 +28,48 @@ namespace MoreAds.Configs
                 Max = 100,
                 RequiresRestart = false
             }));
-            LethalConfig.LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ConfigManager.OnLanding, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.MaxAdsPerQuota, new IntSliderOptions
+            {
+                Min = -1,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceOnLanding, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceOnLandingLastDay, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceForFirstAd, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceForFirstAdLastDay, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceForReset, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceForResetLastDay, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
             LethalConfig.LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(ConfigManager.EarliestTimeToShowAd, new FloatSliderOptions
             {
                 Min = 0.0f,
@@ -48,8 +89,33 @@ namespace MoreAds.Configs
                 RequiresRestart = false
             }));
             LethalConfig.LethalConfigManager.AddConfigItem(new EnumDropDownConfigItem<ConfigManager.NextAdAction>(ConfigManager.PlayOnDeath, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceOnDeath, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceOnDeathLastDay, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
             LethalConfig.LethalConfigManager.AddConfigItem(new EnumDropDownConfigItem<ConfigManager.NextAdAction>(ConfigManager.PlayOnHurt, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceOnHurt, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
+            LethalConfig.LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ConfigManager.ChanceOnHurtLastDay, new IntSliderOptions
+            {
+                Min = 0,
+                Max = 100,
+                RequiresRestart = false
+            }));
             LethalConfig.LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(ConfigManager.Blacklist, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(ConfigManager.SalesText, false));
         }
     }
 }

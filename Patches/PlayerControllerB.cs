@@ -11,13 +11,25 @@ namespace MoreAds.Patches
         [HarmonyPostfix]
         private static void OnDeath()
         {
-            if (Configs.ConfigManager.PlayOnDeath.Value == Configs.ConfigManager.NextAdAction.Immediately)
+            var chance = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceOnDeathLastDay.Value : Configs.ConfigManager.ChanceOnDeath.Value;
+            if (Plugin.debug)
             {
-                TimeOfDayPatch.RollAds();
+                Plugin.logger.LogInfo($"OnDeath: {chance}% chance.");
             }
-            else if (Configs.ConfigManager.PlayOnDeath.Value == Configs.ConfigManager.NextAdAction.RerollNext)
+            if (chance > 0 && (chance >= 100 || Random.Range(0, 100) < chance))
             {
-                TimeOfDayPatch.PokeAds();
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("OnDeath: Trigger successful.");
+                }
+                if (Configs.ConfigManager.PlayOnDeath.Value == Configs.ConfigManager.NextAdAction.Immediately)
+                {
+                    TimeOfDayPatch.RollAds();
+                }
+                else if (Configs.ConfigManager.PlayOnDeath.Value == Configs.ConfigManager.NextAdAction.RerollNext)
+                {
+                    TimeOfDayPatch.PokeAds();
+                }
             }
         }
 
@@ -25,13 +37,25 @@ namespace MoreAds.Patches
         [HarmonyPostfix]
         private static void OnHurt()
         {
-            if (Configs.ConfigManager.PlayOnHurt.Value == Configs.ConfigManager.NextAdAction.Immediately)
+            var chance = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceOnHurtLastDay.Value : Configs.ConfigManager.ChanceOnHurt.Value;
+            if (Plugin.debug)
             {
-                TimeOfDayPatch.RollAds();
+                Plugin.logger.LogInfo($"OnHurt: {chance}% chance.");
             }
-            else if (Configs.ConfigManager.PlayOnHurt.Value == Configs.ConfigManager.NextAdAction.RerollNext)
+            if (chance > 0 && (chance >= 100 || Random.Range(0, 100) < chance))
             {
-                TimeOfDayPatch.PokeAds();
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("OnHurt: Trigger successful.");
+                }
+                if (Configs.ConfigManager.PlayOnHurt.Value == Configs.ConfigManager.NextAdAction.Immediately)
+                {
+                    TimeOfDayPatch.RollAds();
+                }
+                else if (Configs.ConfigManager.PlayOnHurt.Value == Configs.ConfigManager.NextAdAction.RerollNext)
+                {
+                    TimeOfDayPatch.PokeAds();
+                }
             }
         }
     }

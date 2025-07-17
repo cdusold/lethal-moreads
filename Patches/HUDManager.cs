@@ -35,7 +35,28 @@ namespace MoreAds.Patches
                     num -= Configs.ConfigManager.SalesTextList[i].Item2;
                 }
             }
-
+            result = result.Replace("{me}", GameNetworkManager.Instance.localPlayerController.playerUsername);
+            result = result.Replace("&comma;", ",");
+            if (result.Contains("{player}"))
+            {
+                var player = StartOfRound.Instance.allPlayerScripts[new System.Random(StartOfRound.Instance.randomMapSeed + TimeOfDayPatch.adCount + 1).Next(0, StartOfRound.Instance.allPlayerScripts.Length)].playerUsername;
+                result = result.Replace("{player}", player);
+            }
+            if (result.Contains("{planet}"))
+            {
+                Terminal terminal = UnityEngine.Object.FindObjectOfType<Terminal>();
+                var planet = terminal.moonsCatalogueList[new System.Random(StartOfRound.Instance.randomMapSeed + TimeOfDayPatch.adCount + 2).Next(0, terminal.moonsCatalogueList.Length)].PlanetName;
+                result = result.Replace("{planet}", planet);
+            }
+            if (result.Contains("{here}"))
+            {
+                var here = StartOfRound.Instance.currentLevel.PlanetName;
+                result = result.Replace("{here}", here);
+            }
+            if (Plugin.debug)
+            {
+                Plugin.logger.LogInfo($"Sale text chosen: {result}");
+            }
             return result;
         }
 
@@ -101,7 +122,7 @@ namespace MoreAds.Patches
                     buyableItemsList.Add(j);
                 }
             }
-            string itemName = "";
+            string topText = "";
             string saleText = ChooseSaleText();
             num3 = UnityEngine.Random.Range(0, terminal.buyableItemsList.Length + list.Count);
             if (num3 >= list.Count)
@@ -118,7 +139,7 @@ namespace MoreAds.Patches
                 {
                     saleText = $"{100 - num2}% OFF!";
                 }
-                itemName = item.itemName;
+                topText = item.itemName;
             }
             else
             {
@@ -136,7 +157,7 @@ namespace MoreAds.Patches
                 {
                     HUDManager.Instance.CreateFurnitureAdModelAndDisplayAdClientRpc(num5);
                     HUDManager.Instance.CreateFurnitureAdModel(StartOfRound.Instance.unlockablesList.unlockables[list[num3].shipUnlockableID]);
-                    itemName = StartOfRound.Instance.unlockablesList.unlockables[list[num3].shipUnlockableID].unlockableName;
+                    topText = StartOfRound.Instance.unlockablesList.unlockables[list[num3].shipUnlockableID].unlockableName;
                 }
                 catch (ArgumentException e)
                 {
@@ -147,8 +168,18 @@ namespace MoreAds.Patches
                     return false; // Vanilla ads are broken, never play one.
                 }
             }
-
-            HUDManager.Instance.BeginDisplayAd(itemName, saleText);
+            if (saleText.Contains("{product}"))
+            {
+                // At this point, the item name is in the topText variable.
+                saleText = saleText.Replace("{product}", topText);
+            }
+            if (saleText.Contains("/"))
+            {
+                var splits = saleText.Split('/');
+                topText = splits[0].Trim();
+                saleText = splits[1].Trim();
+            }
+            HUDManager.Instance.BeginDisplayAd(topText, saleText);
             // HUDManager.Instance.BeginDisplayAd("Never gonna", "give you up");
             return false; // Skip vanilla ad, we already did one.
         }
@@ -163,14 +194,34 @@ namespace MoreAds.Patches
                 return true; // Let the base game handle RPC sending.
             }
 
-            var __rpc_exec_stage = Traverse.Create(HUDManager.Instance).Field("__rpc_exec_stage").GetValue();
-            // We can't access the enum but Client is 2.
-            if ((int)__rpc_exec_stage != 2 && (networkManager.IsServer || networkManager.IsHost))
+            var __rpc_exec_stage = (int)Traverse.Create(HUDManager.Instance).Field("__rpc_exec_stage").GetValue();
+            if (Plugin.debug)
+            {
+                Plugin.logger.LogInfo($"__rpc_exec_stage: {__rpc_exec_stage}");
+            }
+            var stage_Client = 2;
+            if (Plugin.debug)
+            {
+                try
+                { // This ain't it.
+                    Type ___RpcExecStage = Traverse.Create(HUDManager.Instance).Field("__RpcExecStage").GetValue<Type>();
+                    stage_Client = (int)___RpcExecStage.GetField("Client").GetValue(___RpcExecStage);
+                    if (Plugin.debug)
+                    {
+                        Plugin.logger.LogInfo($"___RpcExecStage.Client: {stage_Client}");
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+            }
+            if (__rpc_exec_stage != stage_Client && (networkManager.IsServer || networkManager.IsHost))
             {
                 return true; // Let the base game handle RPC sending.
             }
 
-            if ((int)__rpc_exec_stage == 2 && (networkManager.IsClient || networkManager.IsHost) && !HUDManager.Instance.IsServer)
+            if (__rpc_exec_stage == stage_Client && (networkManager.IsClient || networkManager.IsHost) && !HUDManager.Instance.IsServer)
             {
                 for (int num = HUDManager.Instance.advertItemParent.transform.childCount - 1; num >= 0; num--)
                 {
@@ -186,11 +237,22 @@ namespace MoreAds.Patches
                 }
 
                 var saleText = ChooseSaleText();
+                string topText = item.itemName;
                 if (steepestSale <= 70)
                 {
                     saleText = $"{100 - steepestSale}% OFF!";
                 }
-                HUDManager.Instance.BeginDisplayAd(item.itemName, saleText);
+                if (saleText.Contains("{product}"))
+                {
+                    saleText = saleText.Replace("{product}", item.itemName);
+                }
+                if (saleText.Contains("/"))
+                {
+                    var splits = saleText.Split('/');
+                    topText = splits[0].Trim();
+                    saleText = splits[1].Trim();
+                }
+                HUDManager.Instance.BeginDisplayAd(topText, saleText);
             }
             return false; // Skip original method
         }
