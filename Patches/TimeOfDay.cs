@@ -137,25 +137,6 @@ namespace MoreAds.Patches
             }
             // Nuclear option. We don't care about vanilla checks, we have our own.
             SetGameToAllowAds();
-            if (false) // TODO: REMOVE
-            {
-                if (Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").GetValue<bool>())
-                {
-                    if (Plugin.debug)
-                    {
-                        Plugin.logger.LogInfo("Ad check happened, but no ad was shown.");
-                    }
-                    Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(15f);
-                    Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").SetValue(false);
-                    ResetAdTime();
-                    TimeOfDay.Instance.hasShownAdThisQuota = false;
-                }
-                else if (TimeOfDay.Instance.hasShownAdThisQuota)
-                {
-                    Plugin.logger.LogInfo("POIK: NOTICE: Ad shown bool being reset.");
-                    TimeOfDay.Instance.hasShownAdThisQuota = false;
-                }
-            }
             return true;
         }
 

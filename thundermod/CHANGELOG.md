@@ -1,8 +1,17 @@
 # 2.0.0
 
 - Adding probabilities to all the ad triggers.
+- Last day until quota probabilities are also available separately.
 - Resetting the ad wait interval on landing.
 - Adding a Max Ads Per Quota setting.
+- Adding slogan variables and modifiers:
+  - {me} for the current player
+  - {player} for a random player
+  - {here} for the current planet
+  - {planet} for a random planet
+  - {product} for the advertised product
+  - \&comma; to show a comma
+  - and / to split the slogan between the bottom and top text with the first part overriding the product name that's usually displayed
 
 # 1.2.0
 
