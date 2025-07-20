@@ -1,3 +1,10 @@
+# 2.0.1
+
+- Fixing Player #[N] showing up when no one is in a slot.
+- Adding \&colon; to the slogan parsing.
+- Added a quick sanitization to the slogans where a missing or invalid weight is replaced with the previous weight in the list plus 1, allowing for quick strictly monotomically more common setting of slogans.
+- Until I know how to do mod data loading, quota ad count will always be set to zero on save file loads.
+
 # 2.0.0
 
 - Adding probabilities to all the ad triggers.

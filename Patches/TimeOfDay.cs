@@ -13,6 +13,14 @@ namespace MoreAds.Patches
         public static int adCount { get; private set; } = 0;
         public static int quotaAdCount { get; private set; } = 0;
 
+        [HarmonyPatch("Start")]
+        [HarmonyPostfix]
+        private static void StartPostfix()
+        {
+            quotaAdCount = 0; // TODO: Actually load.
+            Plugin.logger.LogInfo("quotaAdCount loaded as 0.");
+        }
+
         [HarmonyPatch("SetNewProfitQuota")]
         [HarmonyPrefix]
         private static bool SetNewProfitQuota()

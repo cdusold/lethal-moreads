@@ -84,15 +84,25 @@ Using the following:
   - Will put the advertised items name into the ad.
 - \&comma;
   - Will put a comma into the ad (as it would otherwise split the entries in the raw config, this is required)
+- \&colon;
+  - Will put a colon into the ad (as it would otherwise split the entry from the weight in the raw config, this is required)
 - /
   - Will split the entry into top text (the left side of the entry) and bottom text.
 
 All together you can make an entry like "Hey {me}\&comma; get {player} one while you're on {here}/{planet} doesn't sell {product}s!:100" to really confuse your friends.
 
+#### Quick settings
+
+If you enter a list of strings, or add a string in without a weight, it will set a weight for you of the previous weight plus one, with a minimum automatic value of one. This way you can enter things quickly, starting with the rarest one.
+
 # Miscellanious fixes
 
 - By default the game gets the ad sale value wrong on clients. This mod fixes that.
 - If a suit ad tries to play, something null reference exceptions and then no ad can ever play again. A custom ad selection is forced every time to prevent this, with configurable blacklist.
+
+# Known issues
+
+- Ad count per quota does not save and will reset every time the file is loaded.
 
 # Support
 

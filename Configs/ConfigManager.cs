@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Configuration;
 using DunGen;
+using MonoMod.RuntimeDetour;
 
 namespace MoreAds.Configs
 {
@@ -93,9 +94,48 @@ namespace MoreAds.Configs
             }
         }
 
+        private static void SanitizeSalesText()
+        {
+            var salesText = SalesText.Value.Split(',');
+            var lastWeight = 0;
+            if (Plugin.debug)
+            {
+                Plugin.logger.LogInfo($"Sales texts:");
+            }
+            for (int i = 0; i < salesText.Length; i++)
+            {
+                var parts = salesText[i].Split(':');
+                if (parts.Length != 2 || !int.TryParse(parts[1], out int weight) || weight < 0)
+                {
+                    parts = [parts[0], (++lastWeight).ToString()];
+                    salesText[i] = string.Join(":", parts);
+                }
+                else
+                {
+                    lastWeight = weight;
+                }
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo($"- {salesText[i]}");
+                }
+            }
+            SalesText.SettingChanged -= SalesTextHook;
+            // I hope this avoids recursion properly.
+            SalesText.Value = string.Join(",", salesText);
+            SalesText.SettingChanged += SalesTextHook;
+        }
+        private static void SalesTextHook(object sender, EventArgs args)
+        {
+            SanitizeSalesText();
+        }
+
 
         private ConfigManager(ConfigFile config)
         {
+            if (Plugin.debug)
+            {
+                Plugin.logger.LogInfo("Initializing ConfigManager...");
+            }
             MaxAdsPerDay = config.Bind(
                 "General",
                 "Max ads per day",
@@ -210,6 +250,8 @@ namespace MoreAds.Configs
                 "CURES CANCER!:3,NO WAY!:3,LIMITED TIME ONLY!:24,GET YOURS TODAY!:30,AVAILABLE NOW!:40",
                 "List of sales text to use for ads. Format: 'Text:Weight', comma separated. Defaults to vanilla values."
             );
+            SanitizeSalesText();
+            SalesText.SettingChanged += SalesTextHook;
         }
     }
 }

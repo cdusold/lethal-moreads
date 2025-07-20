@@ -10,10 +10,6 @@ namespace MoreAds.Patches
     {
         private static string ChooseSaleText()
         {
-            // TODO: Make this configurable
-            // This is just the code from the original game (v72)
-            // It'll make more sense to make this configurable if we can sync text with clients.
-
             // The original default, just because.
             string result = "AVAILABLE NOW!";
             // This kinda syncs the clients?
@@ -37,9 +33,10 @@ namespace MoreAds.Patches
             }
             result = result.Replace("{me}", GameNetworkManager.Instance.localPlayerController.playerUsername);
             result = result.Replace("&comma;", ",");
+            result = result.Replace("&colon;", ":");
             if (result.Contains("{player}"))
             {
-                var player = StartOfRound.Instance.allPlayerScripts[new System.Random(StartOfRound.Instance.randomMapSeed + TimeOfDayPatch.adCount + 1).Next(0, StartOfRound.Instance.allPlayerScripts.Length)].playerUsername;
+                var player = StartOfRound.Instance.allPlayerScripts[new System.Random(StartOfRound.Instance.randomMapSeed + TimeOfDayPatch.adCount + 1).Next(0, StartOfRound.Instance.connectedPlayersAmount + 1)].playerUsername;
                 result = result.Replace("{player}", player);
             }
             if (result.Contains("{planet}"))
