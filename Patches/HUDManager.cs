@@ -183,7 +183,7 @@ namespace MoreAds.Patches
 
         [HarmonyPatch("CreateToolAdModelAndDisplayAdClientRpc")]
         [HarmonyPrefix]
-        private static bool CreateToolAdModelAndDisplayAdClientRpcReplacement(int steepestSale, int itemIndex)
+        private static bool CreateToolAdModelAndDisplayAdClientRpcReplacement(int itemIndex)
         {
             NetworkManager networkManager = HUDManager.Instance.NetworkManager;
             if ((object)networkManager == null || !networkManager.IsListening || networkManager.IsHost || HUDManager.Instance.IsServer)
@@ -228,16 +228,17 @@ namespace MoreAds.Patches
                 HUDManager.Instance.advertItem = null;
                 Terminal terminal = UnityEngine.Object.FindObjectOfType<Terminal>();
                 Item item = terminal.buyableItemsList[itemIndex];
+                int saleValue = terminal.itemSalesPercentages[itemIndex];
                 if (!GameNetworkManager.Instance.localPlayerController.isPlayerDead)
                 {
-                    HUDManager.Instance.CreateToolAdModel(steepestSale, item);
+                    HUDManager.Instance.CreateToolAdModel(saleValue, item);
                 }
 
                 var saleText = ChooseSaleText();
                 string topText = item.itemName;
-                if (steepestSale <= 70)
+                if (saleValue <= 70)
                 {
-                    saleText = $"{100 - steepestSale}% OFF!";
+                    saleText = $"{100 - saleValue}% OFF!";
                 }
                 if (saleText.Contains("{product}"))
                 {

@@ -1,3 +1,9 @@
+# 2.0.2
+
+- Pulling sale value directly from terminal, as I always should have been.
+  - Enables compatibility with ButteryFixes with no compat checks needed.
+- Mentioning suits fix in ButteryFixes and how to let it work with this mod added as well.
+
 # 2.0.1
 
 - Fixing Player #[N] showing up when no one is in a slot.

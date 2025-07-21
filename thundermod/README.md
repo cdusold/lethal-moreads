@@ -65,6 +65,7 @@ Similarly, this overrides the chance on the last day of the quota.
 
 ### Blacklist
 Ads to never play. Contains all vanilla suits by default as Lethal Company (in vanilla) will have its ad routines crash and never fix themselves until the game is restarted if any suit ad tries to play.
+- Note: If you have ButterFixes, suits will work and you can remove them all from the blacklist.
 
 ### Sales text
 The text to use during ads. If a chosen item has a sale of 20% or less, or no sale, this will set the text instead. Very customizable.
@@ -98,11 +99,20 @@ If you enter a list of strings, or add a string in without a weight, it will set
 # Miscellanious fixes
 
 - By default the game gets the ad sale value wrong on clients. This mod fixes that.
+  - ButteryFixes fixes this too, but these patches no longer conflict.
 - If a suit ad tries to play, something null reference exceptions and then no ad can ever play again. A custom ad selection is forced every time to prevent this, with configurable blacklist.
+  - If you're using ButterFixes, it actually fixes the suit ads so they can be played again. In that case, you might want to remove the suits from the ads blacklist.
 
 # Known issues
 
 - Ad count per quota does not save and will reset every time the file is loaded.
+
+# Compatibility
+
+- Should work with ButterFixes as of version 2.0.2
+  - You can remove suits from the blacklist if and only if Zeekerss fixes them, or you have ButteryFixes installed as well.
+- Actually works with RemoveAds, but that defeats the purpose.
+- As far as I know, everything is compatible, but let me know if anything comes up.
 
 # Support
 
