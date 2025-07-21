@@ -13,7 +13,7 @@ namespace MoreAds
     public class Plugin : BaseUnityPlugin
     {
         private readonly Harmony harmony = new Harmony("cdusold.LethalMoreAds");
-        internal static readonly bool debug = false;
+        internal static bool debug {get { return ConfigManager.Debug.Value; }}
         private static Plugin Instance;
 
         public static ManualLogSource logger;

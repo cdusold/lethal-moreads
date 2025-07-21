@@ -129,6 +129,8 @@ namespace MoreAds.Configs
             SanitizeSalesText();
         }
 
+        public static ConfigEntry<bool> Debug { get; private set; }
+
 
         private ConfigManager(ConfigFile config)
         {
@@ -252,6 +254,12 @@ namespace MoreAds.Configs
             );
             SanitizeSalesText();
             SalesText.SettingChanged += SalesTextHook;
+            Debug = config.Bind(
+                "General",
+                "Debug",
+                false,
+                "Enable debug logging. This will log a lot of information to the console."
+            );
         }
     }
 }
