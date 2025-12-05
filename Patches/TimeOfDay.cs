@@ -93,6 +93,10 @@ namespace MoreAds.Patches
         [HarmonyPostfix]
         private static void GetClientInfoPost()
         {
+            if (Plugin.debug)
+            {
+                Plugin.logger.LogWarning("POIK: Resetting ad availability in vanilla.");
+            }
             SetGameToAllowAds();
         }
 
@@ -100,6 +104,10 @@ namespace MoreAds.Patches
         [HarmonyPostfix]
         private static void MeetsRequirementsToShowAdPatch(ref bool __result)
         { // A little hacky.
+            if (Plugin.debug && !__result)
+            {
+                Plugin.logger.LogWarning("POIK: Forcing client to meet requirements.");
+            }
             __result = true;
         }
 
@@ -136,6 +144,10 @@ namespace MoreAds.Patches
             var __adWaitInterval = Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").GetValue<float>();
             if (__adWaitInterval > 0f)
             {
+                if (Plugin.debug && __adWaitInterval%1 - Time.deltaTime <= 0f)
+                {
+                    Plugin.logger.LogInfo($"Ad wait interval at {Mathf.RoundToInt(__adWaitInterval)} seconds left.");
+                }
                 Traverse.Create(TimeOfDay.Instance).Field("adWaitInterval").SetValue(__adWaitInterval - Time.deltaTime);
                 return false; // Skip original method
             }
@@ -164,18 +176,34 @@ namespace MoreAds.Patches
         {
             if (TimeOfDay.Instance.normalizedTimeOfDay > Configs.ConfigManager.LatestTimeToShowAd.Value)
             {
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("It's too late for ads.");
+                }
                 return false;
             }
             if (Configs.ConfigManager.MaxAdsPerDay.Value != -1 && adCount >= Configs.ConfigManager.MaxAdsPerDay.Value)
             {
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("Reached max ads per day.");
+                }
                 return false;
             }
             if (Configs.ConfigManager.MaxAdsPerQuota.Value != -1 && quotaAdCount >= Configs.ConfigManager.MaxAdsPerQuota.Value)
             {
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("Reached max ads per quota.");
+                }
                 return false;
             }
             if (StartOfRound.Instance.livingPlayers <= 0)
             {
+                if (Plugin.debug)
+                {
+                    Plugin.logger.LogInfo("No living players.");
+                }
                 return false;
             }
             return true;
@@ -219,6 +247,10 @@ namespace MoreAds.Patches
 
         private static void SetGameToAllowAds()
         { // Setup all vanilla ad-related variables
+            if (Plugin.debug && TimeOfDay.Instance.hasShownAdThisQuota)
+            {
+                Plugin.logger.LogInfo("Resetting hasShownAdThisQuota.");
+            }
             TimeOfDay.Instance.hasShownAdThisQuota = false;
             Traverse.Create(TimeOfDay.Instance).Field("checkingIfClientsAreReadyForAd").SetValue(false);
         }
@@ -232,7 +264,7 @@ namespace MoreAds.Patches
         private static void ResetAdTime()
         {
             SetGameToAllowAds();
-            var chance = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceForFirstAdLastDay.Value : Configs.ConfigManager.ChanceForFirstAd.Value;
+            var chance = TimeOfDay.Instance.daysUntilDeadline <= 1 ? Configs.ConfigManager.ChanceForResetLastDay.Value : Configs.ConfigManager.ChanceForReset.Value;
             if (Plugin.debug)
             {
                 Plugin.logger.LogInfo($"Resetting ad time with {chance}% chance.");
@@ -257,10 +289,17 @@ namespace MoreAds.Patches
 
         private static void RerollAdTime()
         {
-            TimeOfDay.Instance.normalizedTimeToShowAd = Math.Min(
-                TimeOfDay.Instance.normalizedTimeToShowAd,
-                RollAdTime()
-            );
+            if (TimeOfDay.Instance.normalizedTimeToShowAd < 0f)
+            {
+                TimeOfDay.Instance.normalizedTimeToShowAd = RollAdTime();
+            }
+            else
+            {
+                TimeOfDay.Instance.normalizedTimeToShowAd = Math.Min(
+                    TimeOfDay.Instance.normalizedTimeToShowAd,
+                    RollAdTime()
+                );
+            }
             if (Plugin.debug)
             {
                 Plugin.logger.LogInfo($"Ad time rerolled to {TimeOfDay.Instance.normalizedTimeToShowAd} (normalized time of day).");

@@ -1,3 +1,9 @@
+# 2.1.0
+
+- Fixing an enum check for clients that changed in v73.
+- Fixing config values used when rolling for reset. Was using the first landing chance by accident.
+- Adding a bunch of debug messages that should default to off.
+
 # 2.0.2
 
 - Pulling sale value directly from terminal, as I always should have been.

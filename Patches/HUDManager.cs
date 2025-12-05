@@ -196,16 +196,19 @@ namespace MoreAds.Patches
             {
                 Plugin.logger.LogInfo($"__rpc_exec_stage: {__rpc_exec_stage}");
             }
-            var stage_Client = 2;
+            // // In v72- we were looking for the Client enum, 2.
+            // var stage_Client = 2;
+            // In v73+ we look for stage_Execute, 1.
+            int stage_Execute = 1;
             if (Plugin.debug)
             {
                 try
                 { // This ain't it.
                     Type ___RpcExecStage = Traverse.Create(HUDManager.Instance).Field("__RpcExecStage").GetValue<Type>();
-                    stage_Client = (int)___RpcExecStage.GetField("Client").GetValue(___RpcExecStage);
+                    stage_Execute = (int)___RpcExecStage.GetField("Execute").GetValue(___RpcExecStage);
                     if (Plugin.debug)
                     {
-                        Plugin.logger.LogInfo($"___RpcExecStage.Client: {stage_Client}");
+                        Plugin.logger.LogInfo($"___RpcExecStage.Execute: {stage_Execute}");
                     }
                 }
                 catch (Exception)
@@ -213,12 +216,12 @@ namespace MoreAds.Patches
                 }
 
             }
-            if (__rpc_exec_stage != stage_Client && (networkManager.IsServer || networkManager.IsHost))
+            if (__rpc_exec_stage != stage_Execute && (networkManager.IsServer || networkManager.IsHost))
             {
                 return true; // Let the base game handle RPC sending.
             }
 
-            if (__rpc_exec_stage == stage_Client && (networkManager.IsClient || networkManager.IsHost) && !HUDManager.Instance.IsServer)
+            if (__rpc_exec_stage == stage_Execute && (networkManager.IsClient || networkManager.IsHost) && !HUDManager.Instance.IsServer)
             {
                 for (int num = HUDManager.Instance.advertItemParent.transform.childCount - 1; num >= 0; num--)
                 {

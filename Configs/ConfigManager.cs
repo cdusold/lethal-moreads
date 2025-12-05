@@ -134,10 +134,10 @@ namespace MoreAds.Configs
 
         private ConfigManager(ConfigFile config)
         {
-            if (Plugin.debug)
-            {
+            // if (Plugin.debug)
+            // {
                 Plugin.logger.LogInfo("Initializing ConfigManager...");
-            }
+            // }
             MaxAdsPerDay = config.Bind(
                 "General",
                 "Max ads per day",
@@ -252,14 +252,14 @@ namespace MoreAds.Configs
                 "CURES CANCER!:3,NO WAY!:3,LIMITED TIME ONLY!:24,GET YOURS TODAY!:30,AVAILABLE NOW!:40",
                 "List of sales text to use for ads. Format: 'Text:Weight', comma separated. Defaults to vanilla values."
             );
-            SanitizeSalesText();
-            SalesText.SettingChanged += SalesTextHook;
             Debug = config.Bind(
                 "General",
                 "Debug",
                 false,
                 "Enable debug logging. This will log a lot of information to the console."
             );
+            SanitizeSalesText();
+            SalesText.SettingChanged += SalesTextHook;
         }
     }
 }

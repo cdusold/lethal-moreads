@@ -118,6 +118,7 @@ If you enter a list of strings, or add a string in without a weight, it will set
 
 This isn't guaranteed to work, but it was running well for us for a while.
 If you run into any issues, please let me know on the [github](https://github.com/cdusold/lethal-moreads) or [discord](https://discord.com/channels/1168655651455639582/1379569936703160340).
+Please turn on the debug setting in the configs and attempt to recreate your issue, if you can. But save your logs from when the issue first arose if you can, as BepinEx by default overwrites the log on the game being launched.
 
 # Recommendations
 
